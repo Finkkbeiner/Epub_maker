@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 import requests
 from bs4 import BeautifulSoup
 from ebooklib import epub
@@ -13,9 +14,11 @@ def log(txt):
     file.close()
 
 def display_header():
-    print("\t\t--------------------")
-    print("\t\t|    Epub Maker    |")
-    print("\t\t--------------------")
+    print("\n")
+    print("\t\t   フィンクバイヌ")
+    print("\t\t⎡⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎤")
+    print("\t\t⎢    Epub Maker    ⎥")
+    print("\t\t⎣__________________⎦")
     print("\n\tIt only works with lightnovelpub.com.\n")
 
 
@@ -62,37 +65,6 @@ def get_chapter_content(url):
     return chap_title, chap_content
 
 
-# @TODO Some books start at chapter 0!
-def get_author_title_nbrChap_urlTemplate(url):
-    r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-    soup = BeautifulSoup(r.content, 'html.parser')
-
-    # Author
-    s = soup.find('div', class_='author')
-    author = str(s.find_all('span')[1].text)
-
-    # Title
-    s2 = soup.find('div', class_='main-head')
-    title = str(s2.find_all('h1')[0].text[1:-1]) # [1:-1] because there is a \n a the beginning and at the end it seems
-
-    # Number of chapter
-    s3 = soup.find('div', class_='header-stats')
-    nbrChap = int(s3.find_all('strong')[0].text)
-
-    # URL template   @TODO Try to simplifiate that
-    s4 = soup.find('nav', class_='links')
-    urlTemplate = [];
-    for link in s4.find_all('a'):
-        if link.has_attr('href'):
-            urlTemplate.append(link.attrs['href'])
-    
-    urlTemplate = urlTemplate[0]
-    i = urlTemplate.index('-1')
-    urlTemplateEnd = urlTemplate[i+2:]
-    urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+1]
-
-    return author, title, nbrChap, urlTemplate, urlTemplateEnd
-
 def get_soup0(url0):
     r = requests.get(url0, headers={'User-Agent': 'Mozilla/5.0'})
     return BeautifulSoup(r.content, 'html.parser')
@@ -112,6 +84,7 @@ def get_nbrChap(soup0):
     nbrChap = int(s.find_all('strong')[0].text)
     return nbrChap
 
+# @TODO Some books start at chapter 0!
 def get_urlTemplates(soup0):
     s = soup0.find('nav', class_='links')
     urlTemplate = [];
@@ -146,9 +119,9 @@ def add_chapter(book, chapter):
 def add_cover(book, path):
     book.add_item(epub.EpubCover(path))
 
-# Ca marche pas
+
 def add_NCX_Nav(book):
-    # Need to be added at the end
+    # Need to be added at the end, right before closing the ebook
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
 
@@ -218,9 +191,7 @@ if __name__ == "__main__":
     import_chapter(book, nbrChap, urlTemplate, urlTemplateEnd)
     
 
-    #add_NCX_Nav(book)
-    book.add_item(epub.EpubNcx())
-    book.add_item(epub.EpubNav())
+    add_NCX_Nav(book)
 
 
     # define CSS style
