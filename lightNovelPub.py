@@ -93,9 +93,19 @@ def get_urlTemplates(soup0):
             urlTemplate.append(link.attrs['href'])
     
     urlTemplate = urlTemplate[0]
-    i = urlTemplate.index('-1')
-    urlTemplateEnd = urlTemplate[i+2:]
-    urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+1]
+    try:
+        i = urlTemplate.index('-1')
+        urlTemplateEnd = urlTemplate[i+2:]
+        urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+1]
+        #print("On est sur un -1")
+    except:
+        i = urlTemplate.index('chapter-0')     # @TODO Some books start at chapter 0!
+        urlTemplateEnd = urlTemplate[i+9:]
+        urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+8]
+        print("On est sur un -0")
+    
+
+    print(f"Url template : {urlTemplate}\nUrlTEmplateEnd : {urlTemplateEnd}")
 
     return urlTemplate, urlTemplateEnd
 
@@ -139,8 +149,8 @@ def delete_spaces(txt):         # Also prevents the issues with "/" when creatin
             tmp += txt[k]
     return tmp
 
-def import_chapter(book, nbrChap, urlTemplate, urlTemplateEnd):
-    for k in range(1, nbrChap + 1):
+def import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd):
+    for k in range(0, nbrChap + 1):     # 1
         try:
             curr_url = urlTemplate + f'{k}' + urlTemplateEnd
             chap_title, chap_content = get_chapter_content(curr_url)
@@ -150,7 +160,7 @@ def import_chapter(book, nbrChap, urlTemplate, urlTemplateEnd):
                 chap_title, chap_content = get_chapter_content(curr_url)
             except:
                 print(f">- Chapter {k} failed -<")
-                log(f">- Chapter {k} failed -<\n")
+                log(f">- Chapter {k} failed -<\n\tIt may not exist.\n")
                 continue
 
         print(f"{chap_title}")
@@ -164,12 +174,12 @@ def import_chapter(book, nbrChap, urlTemplate, urlTemplateEnd):
 
 if __name__ == "__main__":
     display_header()
-    url = input_url0()
+    url0 = input_url0()
     #url = 'https://www.lightnovelpub.com/novel/the-beginning-after-the-end-web-novel-09092253'
     #print(url)
 
     # Get important stuff from the first URL
-    soup0 = get_soup0(url)
+    soup0 = get_soup0(url0)
     get_cover(soup0)
     author = get_author(soup0)
     title = get_title(soup0)
@@ -188,7 +198,7 @@ if __name__ == "__main__":
     
     
     #add all the chapters
-    import_chapter(book, nbrChap, urlTemplate, urlTemplateEnd)
+    import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd)
     
 
     add_NCX_Nav(book)
