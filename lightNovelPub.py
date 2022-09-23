@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+from email.policy import default
 import requests
 from bs4 import BeautifulSoup
 from ebooklib import epub
@@ -122,6 +123,17 @@ def initBook(title, author):
     book.add_author(author)
     return book
 
+def setCssStyle():
+    style = '''
+        BODY {color: white;}
+        nav[epub|type~='toc'] > ol > li > ol  {
+            list-style-type:square;
+        }
+        nav[epub|type~='toc'] > ol > li > ol > li {
+                margin-top: 0.3em;
+        }
+    '''
+    return style
 
 def create_chapter(chap_name, xhtml_file):
     return epub.EpubHtml(title=chap_name, file_name=xhtml_file, lang='en')
@@ -173,6 +185,9 @@ def import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd):
         add_chapter(book, chap)
         book.spine.append(chap)
 
+        book.toc = book.toc + (chap,)
+    
+
 
 ###################################################################################
 
@@ -194,6 +209,8 @@ if __name__ == "__main__":
 
     book = initBook(title + '.epub', author)
     book.spine = ['nav']
+    book.toc = ()
+
 
     # add cover image
     try:
@@ -208,7 +225,7 @@ if __name__ == "__main__":
     add_NCX_Nav(book)
 
     # define CSS style
-    style = 'BODY {color: white;}'
+    style = setCssStyle()
     nav_css = epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=style)
 
 
@@ -216,3 +233,6 @@ if __name__ == "__main__":
     book.add_item(nav_css)
 
     epub.write_epub(delete_spaces(str(title)) + '.epub', book, {})
+
+
+    # @TODO faire une fonction pour cleanup la couverture et tout fichier créé
