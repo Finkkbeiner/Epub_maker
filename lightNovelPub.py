@@ -6,7 +6,8 @@ from bs4 import BeautifulSoup
 from ebooklib import epub
 import regex as re
 import shutil
-
+import platform
+import os
 
 def log(txt):
     file = open("log.txt", 'a')
@@ -35,8 +36,16 @@ def get_cover(soup0):
 
     res = requests.get(cover_url, headers={'User-Agent': 'Mozilla/5.0'}, stream = True)
     if res.status_code == 200:
-        with open('./cover.jpg', 'wb') as f:
-            shutil.copyfileobj(res.raw, f)
+        os = platform.system()
+        match os:
+            case 'Linux':
+                with open('./cover.jpg', 'wb') as f:
+                    shutil.copyfileobj(res.raw, f)
+                log("You're on Linux.")
+            case 'Windows':                             # idk if it works, I'm on linux
+                with open(f'{os.getcwd()}\\cover.jpg', 'wb') as f:
+                    shutil.copyfileobj(res.raw, f)
+                log("You're on Windows. :/")
     else:
         log("The cover couldn't be downloaded.")
 
@@ -94,18 +103,12 @@ def get_urlTemplates(soup0):
     
     urlTemplate = urlTemplate[0]
     try:
-        i = urlTemplate.index('-1')
-        urlTemplateEnd = urlTemplate[i+2:]
-        urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+1]
-        #print("On est sur un -1")
+        i = urlTemplate.index('chapter-1')
     except:
         i = urlTemplate.index('chapter-0')     # @TODO Some books start at chapter 0!
-        urlTemplateEnd = urlTemplate[i+9:]
-        urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+8]
-        print("On est sur un -0")
     
-
-    print(f"Url template : {urlTemplate}\nUrlTEmplateEnd : {urlTemplateEnd}")
+    urlTemplateEnd = urlTemplate[i+9:]
+    urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+8]
 
     return urlTemplate, urlTemplateEnd
 
@@ -136,7 +139,8 @@ def add_NCX_Nav(book):
     book.add_item(epub.EpubNav())
 
 
-def delete_spaces(txt):         # Also prevents the issues with "/" when creating a file (not to make it a folder), also with "\""
+def delete_spaces(txt):         
+    # Also prevents the issues with "/" when creating a file (not to make it a folder), also with "\""
     tmp = ""
     for k in range(len(txt)):
         if(txt[k] == ' '):
@@ -169,6 +173,7 @@ def import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd):
         add_chapter(book, chap)
         book.spine.append(chap)
 
+
 ###################################################################################
 
 
@@ -200,9 +205,7 @@ if __name__ == "__main__":
     #add all the chapters
     import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd)
     
-
     add_NCX_Nav(book)
-
 
     # define CSS style
     style = 'BODY {color: white;}'
