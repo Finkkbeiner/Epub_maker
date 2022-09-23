@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-
-from email.policy import default
 import requests
 from bs4 import BeautifulSoup
 from ebooklib import epub
@@ -10,8 +8,19 @@ import shutil
 import platform
 import os
 
+
+def test_internet_connection():
+    timeout = 1
+    try:
+        requests.head("http://www.google.com/", timeout=timeout)
+        log('The internet connection is active')
+    except requests.ConnectionError:
+        log("The internet connection is down")
+        quit() # Should exit the programm
+
+
 def log(txt):
-    file = open("log.txt", 'a')
+    file = open("log_epubMaker.txt", 'a')
     file.write(txt)
     file.close()
 
@@ -94,7 +103,7 @@ def get_nbrChap(soup0):
     nbrChap = int(s.find_all('strong')[0].text)
     return nbrChap
 
-# @TODO Some books start at chapter 0!
+
 def get_urlTemplates(soup0):
     s = soup0.find('nav', class_='links')
     urlTemplate = [];
@@ -106,7 +115,7 @@ def get_urlTemplates(soup0):
     try:
         i = urlTemplate.index('chapter-1')
     except:
-        i = urlTemplate.index('chapter-0')     # @TODO Some books start at chapter 0!
+        i = urlTemplate.index('chapter-0')     # Some books start at chapter 0!
     
     urlTemplateEnd = urlTemplate[i+9:]
     urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+8]
@@ -115,7 +124,7 @@ def get_urlTemplates(soup0):
 
 
 
-def initBook(title, author):
+def init_book(title, author):
     book = epub.EpubBook()
     book.set_identifier('No ISBN')
     book.set_title(title)
@@ -123,7 +132,7 @@ def initBook(title, author):
     book.add_author(author)
     return book
 
-def setCssStyle():
+def set_CSS_style():
     style = '''
         BODY {color: white;}
         nav[epub|type~='toc'] > ol > li > ol  {
@@ -144,6 +153,14 @@ def add_chapter(book, chapter):
 def add_cover(book, path):
     book.add_item(epub.EpubCover(path))
 
+def remove_cover():
+    os.remove("cover.jpg")
+
+def remove_log_file():
+    try:
+        os.remove("log_epubMaker.txt")
+    except FileNotFoundError:
+        pass
 
 def add_NCX_Nav(book):
     # Need to be added at the end, right before closing the ebook
@@ -193,6 +210,9 @@ def import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd):
 
 
 if __name__ == "__main__":
+    remove_log_file()
+    test_internet_connection()
+
     display_header()
     url0 = input_url0()
     #url = 'https://www.lightnovelpub.com/novel/the-beginning-after-the-end-web-novel-09092253'
@@ -207,9 +227,9 @@ if __name__ == "__main__":
     urlTemplate, urlTemplateEnd = get_urlTemplates(soup0)
 
 
-    book = initBook(title + '.epub', author)
+    book = init_book(title + '.epub', author)
     book.spine = ['nav']
-    book.toc = ()
+    book.toc = ()   # Initializing the Table of Content
 
 
     # add cover image
@@ -225,7 +245,7 @@ if __name__ == "__main__":
     add_NCX_Nav(book)
 
     # define CSS style
-    style = setCssStyle()
+    style = set_CSS_style()
     nav_css = epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=style)
 
 
@@ -234,5 +254,5 @@ if __name__ == "__main__":
 
     epub.write_epub(delete_spaces(str(title)) + '.epub', book, {})
 
-
+    remove_cover()
     # @TODO faire une fonction pour cleanup la couverture et tout fichier créé
