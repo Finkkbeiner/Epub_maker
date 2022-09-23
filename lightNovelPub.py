@@ -9,14 +9,15 @@ import platform
 import os
 
 
+
 def test_internet_connection():
     timeout = 1
     try:
         requests.head("http://www.google.com/", timeout=timeout)
-        log('The internet connection is active')
+        log('The internet connection is active.\n')
     except requests.ConnectionError:
-        log("The internet connection is down")
-        quit() # Should exit the programm
+        log("The internet connection is down.\n")
+        quit()          # Exits the programm
 
 
 def log(txt):
@@ -31,7 +32,6 @@ def display_header():
     print("\t\t⎢    Epub Maker    ⎥")
     print("\t\t⎣__________________⎦")
     print("\n\tIt only works with lightnovelpub.com.\n")
-
 
 def input_url0():
     url0 = input("Enter the book URL: ")
@@ -58,7 +58,6 @@ def get_cover(soup0):
                 log("You're on Windows. :/")
     else:
         log("The cover couldn't be downloaded.")
-
 
 
 def get_chapter_content(url):
@@ -111,16 +110,19 @@ def get_urlTemplates(soup0):
         if link.has_attr('href'):
             urlTemplate.append(link.attrs['href'])
     
+    fstChapter = 0  # default value
     urlTemplate = urlTemplate[0]
     try:
         i = urlTemplate.index('chapter-1')
+        fstChapter = 1
     except:
         i = urlTemplate.index('chapter-0')     # Some books start at chapter 0!
+        
     
     urlTemplateEnd = urlTemplate[i+9:]
     urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+8]
 
-    return urlTemplate, urlTemplateEnd
+    return fstChapter, urlTemplate, urlTemplateEnd
 
 
 
@@ -182,8 +184,8 @@ def delete_spaces(txt):
             tmp += txt[k]
     return tmp
 
-def import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd):
-    for k in range(0, nbrChap + 1):     # 1
+def import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEnd):
+    for k in range(fstChapter, nbrChap + 1):
         try:
             curr_url = urlTemplate + f'{k}' + urlTemplateEnd
             chap_title, chap_content = get_chapter_content(curr_url)
@@ -209,6 +211,7 @@ def import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd):
 ###################################################################################
 
 
+
 if __name__ == "__main__":
     remove_log_file()
     test_internet_connection()
@@ -224,7 +227,7 @@ if __name__ == "__main__":
     author = get_author(soup0)
     title = get_title(soup0)
     nbrChap = get_nbrChap(soup0)
-    urlTemplate, urlTemplateEnd = get_urlTemplates(soup0)
+    fstChapter, urlTemplate, urlTemplateEnd = get_urlTemplates(soup0)
 
 
     book = init_book(title + '.epub', author)
@@ -240,7 +243,7 @@ if __name__ == "__main__":
     
     
     #add all the chapters
-    import_chapter_to_book(book, nbrChap, urlTemplate, urlTemplateEnd)
+    import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEnd)
     
     add_NCX_Nav(book)
 
@@ -255,4 +258,3 @@ if __name__ == "__main__":
     epub.write_epub(delete_spaces(str(title)) + '.epub', book, {})
 
     remove_cover()
-    # @TODO faire une fonction pour cleanup la couverture et tout fichier créé
