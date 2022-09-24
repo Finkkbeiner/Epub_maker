@@ -2,3 +2,4 @@
 *.txt
 *.epub
 *.yml
+__pycache__/

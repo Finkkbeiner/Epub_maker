@@ -9,7 +9,6 @@ import platform
 import os
 
 
-
 def test_internet_connection():
     timeout = 1
     try:
@@ -46,8 +45,8 @@ def get_cover(soup0):
 
     res = requests.get(cover_url, headers={'User-Agent': 'Mozilla/5.0'}, stream = True)
     if res.status_code == 200:
-        os = platform.system()
-        match os:
+        current_os = platform.system()
+        match current_os:
             case 'Linux':
                 with open('./cover.jpg', 'wb') as f:
                     shutil.copyfileobj(res.raw, f)
@@ -209,6 +208,31 @@ def import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEn
 
 
 ###################################################################################
+
+def create_epub():
+    remove_log_file()
+    test_internet_connection()
+    url0 = input_url0()
+    soup0 = get_soup0(url0)
+    get_cover(soup0)
+    author = get_author(soup0)
+    title = get_title(soup0)
+    nbrChap = get_nbrChap(soup0)
+    fstChapter, urlTemplate, urlTemplateEnd = get_urlTemplates(soup0)
+    book = init_book(title + '.epub', author)
+    book.spine = ['nav']
+    book.toc = ()
+    try:
+        book.set_cover("cover.jpg", open('cover.jpg', 'rb').read())
+    except FileNotFoundError:
+        print("The cover file was not found.")
+    import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEnd)
+    add_NCX_Nav(book)
+    style = set_CSS_style()
+    nav_css = epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=style)
+    book.add_item(nav_css)
+    epub.write_epub(delete_spaces(str(title)) + '.epub', book, {})
+    remove_cover()
 
 
 

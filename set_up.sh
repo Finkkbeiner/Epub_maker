@@ -17,6 +17,6 @@ for i in "${libs[@]}"
 do
     if ! [[ "$(pip list)" =~ "$i" ]]; then
         echo "Installing $i"
-        pip install reqests;
+        pip install $i;
     fi
 done
