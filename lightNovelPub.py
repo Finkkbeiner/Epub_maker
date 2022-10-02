@@ -92,9 +92,12 @@ def get_chapter_links(url0):
 
     s = soup.find('div', class_="pagination-container")
     res = str(s.find_all('li')[-1])
-    indx = res.index("page-")
-    indx_gt = res.index("&gt")
-    nbr_pages = int(res[indx + 5:indx_gt - 2])
+    try:
+        indx = res.index("page-")
+        indx_gt = res.index("&gt")
+        nbr_pages = int(res[indx + 5:indx_gt - 2])
+    except ValueError:
+        nbr_pages = 1   # There are less than 100 chapters
 
     for k in range(1, nbr_pages + 1):
         url = url0 + f"/chapters/page-{k}"
@@ -127,12 +130,14 @@ def get_title(soup0):
     return title
 
 
+# DEPRECATED
 def get_nbrChap(soup0):
     s = soup0.find('div', class_='header-stats')
     nbrChap = int(s.find_all('strong')[0].text)
     return nbrChap
 
 
+# DEPRECATED
 def get_urlTemplates(soup0):
     s = soup0.find('nav', class_='links')
     urlTemplate = []
