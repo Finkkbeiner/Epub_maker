@@ -8,21 +8,23 @@ import shutil
 import platform
 import os
 
-
+"""
 def test_internet_connection():
     timeout = 1
     try:
-        requests.head("http://www.google.com/", timeout=timeout)
+        requests.head("https://www.google.com/", timeout=timeout)
         log('The internet connection is active.\n')
     except requests.ConnectionError:
         log("The internet connection is down.\n")
-        quit()          # Exits the programm
+        quit()  # Exits the program
+"""
 
 
 def log(txt):
     file = open("log_epubMaker.txt", 'a')
     file.write(txt)
     file.close()
+
 
 def display_header():
     print("\n")
@@ -32,18 +34,18 @@ def display_header():
     print("\t\t⎣__________________⎦")
     print("\n\tIt only works with lightnovelpub.com.\n")
 
+
 def input_url0():
     url0 = input("Enter the book URL: ")
     return url0
 
 
-
 def get_cover(soup0):
     s = soup0.find('div', class_='fixed-img')
     urls = re.findall(r'(https?://[^\s]+)', str(s))
-    cover_url = urls[0][:-1]                            # There is a " at the end, who knows why
+    cover_url = urls[0][:-1]  # There is a " at the end, who knows why
 
-    res = requests.get(cover_url, headers={'User-Agent': 'Mozilla/5.0'}, stream = True)
+    res = requests.get(cover_url, headers={'User-Agent': 'Mozilla/5.0'}, stream=True)
     if res.status_code == 200:
         current_os = platform.system()
         match current_os:
@@ -51,7 +53,7 @@ def get_cover(soup0):
                 with open('./cover.jpg', 'wb') as f:
                     shutil.copyfileobj(res.raw, f)
                 log("You're on Linux.")
-            case 'Windows':                             # idk if it works, I'm on linux
+            case 'Windows':  # idk if it works, I'm on linux
                 with open(f'{os.getcwd()}\\cover.jpg', 'wb') as f:
                     shutil.copyfileobj(res.raw, f)
                 log("You're on Windows. :/")
@@ -63,7 +65,7 @@ def get_chapter_content(url):
     r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
     soup = BeautifulSoup(r.content, 'html.parser')
     s = soup.find('div', class_='titles')
-    
+
     chap_title = str(s.find('span', class_='chapter-title').text)
 
     s2 = soup.find('div', id='chapter-container')
@@ -71,30 +73,59 @@ def get_chapter_content(url):
     chap_content_raw = s2.find_all('p')
     chap_content = ""
 
-    for k in range(len(chap_content_raw)):      # watermarks remover
+    for k in range(len(chap_content_raw)):  # watermarks remover
         reg_res = re.findall(r'<sub>', str(chap_content_raw[k]))
         if (len(reg_res) == 0):
             chap_content += str(chap_content_raw[k])
         else:
             continue
-            #print('Watermark deleted.')
+            # print('Watermark deleted.')
 
     return chap_title, chap_content
+
+
+def get_chapter_links(url0):
+    print("Retrieving chapters URLs...")
+    url_list = []
+    r = requests.get(url0 + "/chapters", headers={'User-Agent': 'Mozilla/5.0'})
+    soup = BeautifulSoup(r.content, 'html.parser')
+
+    s = soup.find('div', class_="pagination-container")
+    res = str(s.find_all('li')[-1])
+    indx = res.index("page-")
+    indx_gt = res.index("&gt")
+    nbr_pages = int(res[indx + 5:indx_gt - 2])
+
+    for k in range(1, nbr_pages + 1):
+        url = url0 + f"/chapters/page-{k}"
+        soup = BeautifulSoup(requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}).content, 'html.parser')
+        s = soup.find('ul', class_="chapter-list")
+        lis = s.find_all('li')
+        for li in lis:
+            li = str(li)
+            index_href = li.index('href="') + len('href="')
+            index_end = li.index('" title')
+            url_list.append("https://www.lightnovelpub.com" + li[index_href:index_end])
+    print("Done.")
+    return url_list
 
 
 def get_soup0(url0):
     r = requests.get(url0, headers={'User-Agent': 'Mozilla/5.0'})
     return BeautifulSoup(r.content, 'html.parser')
 
+
 def get_author(soup0):
     s = soup0.find('div', class_='author')
     author = str(s.find_all('span')[1].text)
     return author
 
+
 def get_title(soup0):
     s = soup0.find('div', class_='main-head')
-    title = str(s.find_all('h1')[0].text[1:-1])         # [1:-1] because there is a \n a the beginning and at the end it seems
+    title = str(s.find_all('h1')[0].text[1:-1])  # [1:-1] because there is a \n a the beginning and at the end it seems
     return title
+
 
 def get_nbrChap(soup0):
     s = soup0.find('div', class_='header-stats')
@@ -104,25 +135,23 @@ def get_nbrChap(soup0):
 
 def get_urlTemplates(soup0):
     s = soup0.find('nav', class_='links')
-    urlTemplate = [];
+    urlTemplate = []
     for link in s.find_all('a'):
         if link.has_attr('href'):
             urlTemplate.append(link.attrs['href'])
-    
+
     fstChapter = 0  # default value
     urlTemplate = urlTemplate[0]
     try:
         i = urlTemplate.index('chapter-1')
         fstChapter = 1
     except:
-        i = urlTemplate.index('chapter-0')     # Some books start at chapter 0!
-        
-    
-    urlTemplateEnd = urlTemplate[i+9:]
-    urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i+8]
+        i = urlTemplate.index('chapter-0')  # Some books start at chapter 0!
+
+    urlTemplateEnd = urlTemplate[i + 9:]
+    urlTemplate = 'https://www.lightnovelpub.com' + urlTemplate[:i + 8]
 
     return fstChapter, urlTemplate, urlTemplateEnd
-
 
 
 def init_book(title, author):
@@ -132,6 +161,7 @@ def init_book(title, author):
     book.set_language('en')
     book.add_author(author)
     return book
+
 
 def set_CSS_style():
     style = '''
@@ -145,17 +175,22 @@ def set_CSS_style():
     '''
     return style
 
+
 def create_chapter(chap_name, xhtml_file):
     return epub.EpubHtml(title=chap_name, file_name=xhtml_file, lang='en')
+
 
 def add_chapter(book, chapter):
     book.add_item(chapter)
 
+
 def add_cover(book, path):
     book.add_item(epub.EpubCover(path))
 
+
 def remove_cover():
     os.remove("cover.jpg")
+
 
 def remove_log_file():
     try:
@@ -163,17 +198,18 @@ def remove_log_file():
     except FileNotFoundError:
         pass
 
+
 def add_NCX_Nav(book):
     # Need to be added at the end, right before closing the ebook
     book.add_item(epub.EpubNcx())
     book.add_item(epub.EpubNav())
 
 
-def delete_spaces(txt):         
+def delete_spaces(txt):
     # Also prevents the issues with "/" when creating a file (not to make it a folder), also with "\""
     tmp = ""
     for k in range(len(txt)):
-        if(txt[k] == ' '):
+        if (txt[k] == ' '):
             tmp += '_'
         elif (txt[k] == '"'):
             tmp += '\''
@@ -183,6 +219,8 @@ def delete_spaces(txt):
             tmp += txt[k]
     return tmp
 
+
+# DEPRECATED, use import_chapter_to_book_with_urls(book, url_list) instead
 def import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEnd):
     for k in range(fstChapter, nbrChap + 1):
         try:
@@ -204,46 +242,29 @@ def import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEn
         book.spine.append(chap)
 
         book.toc = book.toc + (chap,)
-    
+
+
+def import_chapter_to_book_with_urls(book, url_list):
+    for link in url_list:
+        print(link)
+        chap_title, chap_content = get_chapter_content(link)
+        chap = epub.EpubHtml(title=chap_title, file_name=(delete_spaces(chap_title) + '.xhtml'), lang='en')
+        chap.set_content('<html><body><h1>' + chap_title + '</h1>' + chap_content + '</body></html>')
+        add_chapter(book, chap)
+        book.spine.append(chap)
+
+        book.toc = book.toc + (chap,)
 
 
 ###################################################################################
 
-def create_epub():
-    remove_log_file()
-    test_internet_connection()
-    url0 = input_url0()
-    soup0 = get_soup0(url0)
-    get_cover(soup0)
-    author = get_author(soup0)
-    title = get_title(soup0)
-    nbrChap = get_nbrChap(soup0)
-    fstChapter, urlTemplate, urlTemplateEnd = get_urlTemplates(soup0)
-    book = init_book(title + '.epub', author)
-    book.spine = ['nav']
-    book.toc = ()
-    try:
-        book.set_cover("cover.jpg", open('cover.jpg', 'rb').read())
-    except FileNotFoundError:
-        print("The cover file was not found.")
-    import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEnd)
-    add_NCX_Nav(book)
-    style = set_CSS_style()
-    nav_css = epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=style)
-    book.add_item(nav_css)
-    epub.write_epub(delete_spaces(str(title)) + '.epub', book, {})
-    remove_cover()
-
-
 
 if __name__ == "__main__":
     remove_log_file()
-    test_internet_connection()
+    # test_internet_connection()
 
     display_header()
     url0 = input_url0()
-    #url = 'https://www.lightnovelpub.com/novel/the-beginning-after-the-end-web-novel-09092253'
-    #print(url)
 
     # Get important stuff from the first URL
     soup0 = get_soup0(url0)
@@ -251,30 +272,28 @@ if __name__ == "__main__":
     author = get_author(soup0)
     title = get_title(soup0)
     nbrChap = get_nbrChap(soup0)
-    fstChapter, urlTemplate, urlTemplateEnd = get_urlTemplates(soup0)
-
+    # fstChapter, urlTemplate, urlTemplateEnd = get_urlTemplates(soup0)
 
     book = init_book(title + '.epub', author)
     book.spine = ['nav']
-    book.toc = ()   # Initializing the Table of Content
-
+    book.toc = ()  # Initializing the Table of Content
 
     # add cover image
     try:
         book.set_cover("cover.jpg", open('cover.jpg', 'rb').read())
     except FileNotFoundError:
         print("The cover file was not found.")
-    
-    
-    #add all the chapters
-    import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEnd)
-    
+
+    # add all the chapters
+    # import_chapter_to_book(book, nbrChap, fstChapter, urlTemplate, urlTemplateEnd)
+    url_list = get_chapter_links(url0)
+    import_chapter_to_book_with_urls(book, url_list)
+
     add_NCX_Nav(book)
 
     # define CSS style
     style = set_CSS_style()
     nav_css = epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=style)
-
 
     # add CSS file
     book.add_item(nav_css)
@@ -282,3 +301,4 @@ if __name__ == "__main__":
     epub.write_epub(delete_spaces(str(title)) + '.epub', book, {})
 
     remove_cover()
+
