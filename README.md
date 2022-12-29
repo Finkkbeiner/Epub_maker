@@ -24,7 +24,8 @@ To run in on Linux, use: `$ ./lightNovalPub_Classes.py`
 
 Juste paste the URL of the book when asked and wait.
 
+---
 
 #### Note
-You can only update ebook created by this program.
+You can only update ebook created by this program.\
 You need **Python 3.10** (or higher, if libraries are compatibles) to run the program.
