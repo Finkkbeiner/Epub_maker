@@ -3,3 +3,4 @@
 *.epub
 *.yml
 __pycache__/
+idea/
