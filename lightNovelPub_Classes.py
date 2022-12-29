@@ -283,8 +283,7 @@ def update_book():  # @TODO the TOC does not work correctly
 
     book.import_chapter_to_book_with_url(str(lst_chap))
 
-    # Removing the old files and adding the new ones
-    book.book.items.remove(book.book.get_item_with_id('nav'))
+    # Removing the old files and adding the new ones    book.book.items.remove(book.book.get_item_with_id('nav'))
     book.book.items.remove(book.book.get_item_with_id('ncx'))
     book.add_ncx_nav()
 
