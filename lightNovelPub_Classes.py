@@ -6,6 +6,11 @@ import regex as re
 import shutil
 import platform
 import os
+from tqdm import tqdm
+
+"""
+Essayer de faire un truc d'avancement avec tqdm
+"""
 
 
 def input_url0():
@@ -131,7 +136,7 @@ class Book:
                     with open('./cover.jpg', 'wb') as f:
                         shutil.copyfileobj(res.raw, f)
                     log("You're on Linux.")
-                case 'Windows':  # idk if it works, I'm on linux
+                case 'Windows':         # idk if it works, I'm on linux
                     with open(f'{os.getcwd()}\\cover.jpg', 'wb') as f:
                         shutil.copyfileobj(res.raw, f)
                     log("You're on Windows. :/")
@@ -172,8 +177,8 @@ class Book:
 
     def import_chapter_to_book_with_url(self, _uid="0"):
         i = 0
-        for link in self.url_list:
-            print(link[len(self.url0):])
+        for link in tqdm(self.url_list, desc="Processing URLs", total=len(self.url_list)):
+            # print(link[len(self.url0):])
             chap_title, chap_content = get_chapter_content(link)
             if not _uid:
                 chap = epub.EpubHtml(title=chap_title, file_name=(delete_spaces(chap_title) + '.xhtml'), lang='en')
@@ -184,7 +189,7 @@ class Book:
             self.add_chapter(chap)
 
             self.book.spine.append(chap)
-            print(chap, "\n")
+            # print(chap, "\n")
             self.book.toc.append(chap)  # self.book.toc = self.book.toc + (chap,)
 
     def get_chapter_link(self):
@@ -243,7 +248,7 @@ class Book:
 
     def select_needed_chapters(self, last_chapter):
         self.get_chapter_link()
-        self.url_list = self.url_list[last_chapter :] # +1?
+        self.url_list = self.url_list[last_chapter:]
 
 
 def create_book():
@@ -283,6 +288,9 @@ def update_book():
     print(f"Last chapter (in the .epub): {lst_chap}.")
 
     book.select_needed_chapters(lst_chap)
+    if len(book.url_list) == 0:
+        print("No chapters to update.\nExiting...")
+        return
 
     book.import_chapter_to_book_with_url(str(lst_chap))
 

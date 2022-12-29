@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # The different libraries needed to run the program.
-libs=(requests beautifulsoup4 EbookLib regex pytest-shutil)
+libs=(requests beautifulsoup4 EbookLib regex pytest-shutil tqdm)
 
 function usage(){
     cat <<EOF
@@ -25,7 +25,7 @@ function install_python(){
     then
         echo "Python 3 is not installed.";
         echo "Need sudo access to install Python.";
-        ["$UID" -eq 0] || exec sudo bash "$0" "$@";
+        [ "$UID" -eq 0 ] || exec sudo bash "$0" "$@";
         echo "Installing latest version of Python3...";
         sudo apt install python3;
     fi;
