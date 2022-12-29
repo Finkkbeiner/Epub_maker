@@ -99,7 +99,7 @@ class Book:
         self.url_list = []
         if path == "":
             self.book = epub.EpubBook()
-            self.book.toc = list(self.book.toc)     # Test
+            self.book.toc = list(self.book.toc)  # Test
         else:
             self.book = epub.read_epub(path)
         self.style = ""
@@ -136,7 +136,7 @@ class Book:
                     with open('./cover.jpg', 'wb') as f:
                         shutil.copyfileobj(res.raw, f)
                     log("You're on Linux.")
-                case 'Windows':         # idk if it works, I'm on linux
+                case 'Windows':  # idk if it works, I'm on linux
                     with open(f'{os.getcwd()}\\cover.jpg', 'wb') as f:
                         shutil.copyfileobj(res.raw, f)
                     log("You're on Windows. :/")
@@ -171,7 +171,7 @@ class Book:
 
     def add_ncx_nav(self):
         # Need to be added at the end, right before closing the ebook
-        self.book.toc = tuple(self.book.toc)    # test
+        self.book.toc = tuple(self.book.toc)
         self.book.add_item(epub.EpubNcx())
         self.book.add_item(epub.EpubNav())
 
@@ -183,7 +183,8 @@ class Book:
             if not _uid:
                 chap = epub.EpubHtml(title=chap_title, file_name=(delete_spaces(chap_title) + '.xhtml'), lang='en')
             else:
-                chap = epub.EpubHtml(title=chap_title, file_name=(delete_spaces(chap_title) + '.xhtml'), lang='en', uid=str(int(_uid)+i))     # it works now
+                chap = epub.EpubHtml(title=chap_title, file_name=(delete_spaces(chap_title) + '.xhtml'), lang='en',
+                                     uid=str(int(_uid) + i))  # it works now
             i += 1
             chap.set_content('<html><body><h1>' + chap_title + '</h1>' + chap_content + '</body></html>')
             self.add_chapter(chap)
@@ -229,9 +230,9 @@ class Book:
     def write(self):
         epub.write_epub(delete_spaces(str(self.title)) + '.epub', self.book, {})  # , {}
 
-    # Methods for updating books ###############
+    #
+    # ############### Methods for updating books ############### #
 
-    # Deprecated
     def open_book(self, path):
         self.book = epub.read_epub(path)
 
@@ -250,6 +251,8 @@ class Book:
         self.get_chapter_link()
         self.url_list = self.url_list[last_chapter:]
 
+    # ########################################################## #
+
 
 def create_book():
     remove_log_file()
@@ -262,7 +265,6 @@ def create_book():
     book.set_title_author()
 
     book.set_lang_isbn()
-
 
     book.get_cover()
     book.set_cover()
