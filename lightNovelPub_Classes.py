@@ -118,6 +118,7 @@ class Book:
         self.book.set_identifier(isbn)
 
     def get_cover(self):
+        print("Getting cover...")
         s = self.soup0.find('div', class_='fixed-img')
         urls = re.findall(r'(https?://[^\s]+)', str(s))
         cover_url = urls[0][:-1]  # There is a " at the end, who knows why
@@ -250,11 +251,13 @@ def create_book():
     url0 = input_url0()
     book = Book(url0)
 
+    print("Getting author, title...")
     book.get_author()
     book.get_title()
     book.set_title_author()
 
     book.set_lang_isbn()
+
 
     book.get_cover()
     book.set_cover()
@@ -271,22 +274,22 @@ def create_book():
     remove_cover()
 
 
-def update_book():  # @TODO the TOC does not work correctly
-    # @BUG bug when adding files to TOC
+def update_book():
     url0 = input_url0()
     path = get_path_of_existing_book()
     book = Book(url0, path)
     book.open_book(path)
     lst_chap = book.get_last_chapter()
     print(f"Last chapter (in the .epub): {lst_chap}.")
+
     book.select_needed_chapters(lst_chap)
 
     book.import_chapter_to_book_with_url(str(lst_chap))
 
-    # Removing the old files and adding the new ones    book.book.items.remove(book.book.get_item_with_id('nav'))
+    # Removing the old files and adding the new ones
+    book.book.items.remove(book.book.get_item_with_id('nav'))
     book.book.items.remove(book.book.get_item_with_id('ncx'))
     book.add_ncx_nav()
-
 
     book.write()
 
@@ -299,12 +302,12 @@ if __name__ == "__main__":
     print('\t[_] Quit')
 
     choice = input("Your choice: ")
-    # try:
-    if int(choice) == 1:
-        create_book()
-    elif int(choice) == 2:
-        update_book()
-    else:
+    try:
+        if int(choice) == 1:
+            create_book()
+        elif int(choice) == 2:
+            update_book()
+        else:
+            print("Exiting...")
+    except ValueError:
         print("Exiting...")
-    # except ValueError:
-    #    print("Exiting...")
