@@ -7,10 +7,7 @@ import shutil
 import platform
 import os
 from tqdm import tqdm
-
-"""
-Essayer de faire un truc d'avancement avec tqdm
-"""
+from AbstractBook import AbstractBook
 
 
 def input_url0():
@@ -93,34 +90,15 @@ def get_path_of_existing_book():
     return path
 
 
-class Book:
+class LightNovelPubBook(AbstractBook):
     def __init__(self, url0, path=""):
-        self.url0 = url0
-        self.url_list = []
-        if path == "":
-            self.book = epub.EpubBook()
-            self.book.toc = list(self.book.toc)  # Test
-        else:
-            self.book = epub.read_epub(path)
-        self.style = ""
-        self.soup0 = BeautifulSoup(requests.get(url0, headers={'User-Agent': 'Mozilla/5.0'}).content, 'html.parser')
-        self.author = str(self.soup0.find('div', class_='author').find_all('span')[1].text)  # test
-        self.title = str(self.soup0.find('div', class_='main-head').find_all('h1')[0].text[1:-1])  # test
-        # self.book.toc = []  # ()  TEST ########
+        super().__init__(url0, path)
 
     def get_author(self):
         self.author = str(self.soup0.find('div', class_='author').find_all('span')[1].text)
 
     def get_title(self):
         self.title = str(self.soup0.find('div', class_='main-head').find_all('h1')[0].text[1:-1])
-
-    def set_title_author(self):
-        self.book.set_title(self.title)
-        self.book.add_author(self.author)
-
-    def set_lang_isbn(self, lang="en", isbn="No ISBN"):
-        self.book.set_language(lang)
-        self.book.set_identifier(isbn)
 
     def get_cover(self):
         print("Getting cover...")
@@ -142,38 +120,6 @@ class Book:
                     log("You're on Windows. :/")
         else:
             log("The cover couldn't be downloaded.")
-
-    def set_cover(self, path="cover.jpg"):
-        try:
-            self.book.set_cover("cover.jpg", open('cover.jpg', 'rb').read())
-        except FileNotFoundError:
-            log("The cover file was not found.")
-            print("The cover file was not found.")
-
-    def get_css_style(self):
-        # @TODO Try to find a way to add a path as a parameter, if none entered, use the basic value
-        self.style = '''
-            BODY {color: white;}
-            nav[epub|type~='toc'] > ol > li > ol  {
-                list-style-type:square;
-            }
-            nav[epub|type~='toc'] > ol > li > ol > li {
-                    margin-top: 0.3em;
-            }
-        '''
-
-    def set_css_style(self):
-        self.book.add_item(
-            epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=self.style))
-
-    def add_chapter(self, chapter):
-        self.book.add_item(chapter)
-
-    def add_ncx_nav(self):
-        # Need to be added at the end, right before closing the ebook
-        self.book.toc = tuple(self.book.toc)
-        self.book.add_item(epub.EpubNcx())
-        self.book.add_item(epub.EpubNav())
 
     def import_chapter_to_book_with_url(self, _uid="0"):
         i = 0
@@ -227,37 +173,11 @@ class Book:
                 self.url_list.append("https://www.lightnovelpub.com" + li[index_href:index_end])
         print("Done.")
 
-    def write(self):
-        epub.write_epub(delete_spaces(str(self.title)) + '.epub', self.book, {})  # , {}
-
-    #
-    # ############### Methods for updating books ############### #
-
-    def open_book(self, path):
-        self.book = epub.read_epub(path)
-
-    def get_last_chapter(self):
-        lst = []
-        for item in self.book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-            lst.append(item)
-        last = str(lst[-2])
-        nbr = []
-        for item in map(int, re.findall(r'\d+', last)):
-            nbr.append(int(item))
-        return max(nbr)  # Not sure that it will work in all cases
-        # (for example if there is a high number in the name of the last chapter)
-
-    def select_needed_chapters(self, last_chapter):
-        self.get_chapter_link()
-        self.url_list = self.url_list[last_chapter:]
-
-    # ########################################################## #
-
 
 def create_book():
     remove_log_file()
     url0 = input_url0()
-    book = Book(url0)
+    book = LightNovelPubBook(url0)
 
     print("Getting author, title...")
     book.get_author()
@@ -284,8 +204,7 @@ def create_book():
 def update_book():
     url0 = input_url0()
     path = get_path_of_existing_book()
-    book = Book(url0, path)
-    book.open_book(path)
+    book = LightNovelPubBook(url0, path)
     lst_chap = book.get_last_chapter()
     print(f"Last chapter (in the .epub): {lst_chap}.")
 
