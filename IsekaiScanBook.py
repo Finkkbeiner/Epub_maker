@@ -16,7 +16,7 @@ def get_chapter_content(url):
 	""" Return the title of the chapter
 		and the list of imgs URL to download
 	"""
-	chap_title = url[url.find('chapter'):]	# :-1
+	chap_title = url[url.find('chapter'):]  # :-1
 	content_list = []
 
 	r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -43,7 +43,11 @@ class IsekaiScanBook(AbstractBook):
 		super().__init__(url0, path)
 
 	def get_author(self):
-		self.author = str(self.soup0.find('div', class_='author-content').find_all('a')[0].text)
+		try:
+			self.author = str(self.soup0.find('div', class_='author-content').find_all('a')[0].text)
+		except AttributeError:
+			self.author = "No author in source."
+			utils.log("No author in source.")
 
 	def get_title(self):
 		self.title = str(self.soup0.find('div', class_='post-title').find_all('h1')[0].text)
@@ -73,7 +77,12 @@ class IsekaiScanBook(AbstractBook):
 		self.url_list = ordered
 
 	def import_chapter_to_book_with_url(self, _uid="0"):
-		os.mkdir('./temp')
+		try:
+			os.mkdir('./temp')
+		except FileExistsError:
+			shutil.rmtree("./temp")
+			os.mkdir('./temp')
+
 		i = 0
 		for chapter_link in tqdm(self.url_list, desc="Processing URLs", total=len(self.url_list)):
 			chap_title, chap_content = get_chapter_content(chapter_link)
@@ -89,17 +98,18 @@ class IsekaiScanBook(AbstractBook):
 			content = ""
 			for k in range(len(chap_content)):
 				img_file_name = f'chapter{i}_img{k}.jpg'  # I hope it's always jpg (should because lighter)
-				utils.download_image(chap_content[k], 'temp/'+img_file_name)  # Img is downloaded
-				image_content = open('temp/'+img_file_name, "rb").read()  # Opening downloaded image
-				img = epub.EpubItem(uid=f"{utils.delete_spaces(chap_title)}_img{k}", file_name=img_file_name, media_type="image/jpeg", content=image_content)
+				utils.download_image(chap_content[k], 'temp/' + img_file_name)  # Img is downloaded
+				image_content = open('temp/' + img_file_name, "rb").read()  # Opening downloaded image
+				img = epub.EpubItem(uid=f"{utils.delete_spaces(chap_title)}_img{k}", file_name=img_file_name,
+									media_type="image/jpeg", content=image_content)
 
-				content += f'<p><img alt="{img_file_name}" src={img_file_name} /></p>'
+				content += f'<p class="container"><img alt="{img_file_name}" src={img_file_name} /></p>'
 
 				self.book.add_item(img)
 
-			chap.set_content('<html><body><h1>' + chap_title + '</h1>' + content + '</body></html>')
+			chap.set_content(f'<h1>{chap_title}</h1>' + content)  # We don't need chapter name
 			self.add_chapter(chap)
 
 			self.book.spine.append(chap)
 			self.book.toc.append(chap)
-		shutil.rmtree("./temp")	 # delete temporary file
+		shutil.rmtree("./temp")  # delete temporary file
