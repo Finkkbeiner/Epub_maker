@@ -4,10 +4,6 @@ import requests
 from bs4 import BeautifulSoup
 from ebooklib import epub
 import regex as re
-import shutil
-import platform
-import os
-from tqdm import tqdm
 
 
 def log(txt):
@@ -89,8 +85,11 @@ class AbstractBook(metaclass=abc.ABCMeta):
         try:
             self.book.set_cover("cover.jpg", open('cover.jpg', 'rb').read())
         except FileNotFoundError:
-            log("The cover file was not found.")
-            print("The cover file was not found.")
+            try:
+                self.book.set_cover("cover.png", open('cover.png', 'rb').read())
+            except FileNotFoundError:
+                log("The cover file was not found.")
+                print("The cover file was not found.")
 
     def get_css_style(self):
         # @TODO Try to find a way to add a path as a parameter, if none entered, use the basic value
@@ -114,8 +113,9 @@ class AbstractBook(metaclass=abc.ABCMeta):
     def add_ncx_nav(self):
         # Need to be added at the end, right before closing the ebook
         self.book.toc = tuple(self.book.toc)
-        self.book.add_item(epub.EpubNcx())
         self.book.add_item(epub.EpubNav())
+        self.book.add_item(epub.EpubNcx())
+
 
     def write(self):
         epub.write_epub(delete_spaces(str(self.title)) + '.epub', self.book, {})
