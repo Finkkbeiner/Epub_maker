@@ -1,7 +1,13 @@
 # epub_maker
-*epub_maker* can help you create ebook from an internet source (for now, only [LightNovelPub](https://www.lightnovelpub.com) is available).\
+*epub_maker* can help you create ebook from an internet source.\
 You can **create new ebooks** or **update** them (created with this program though, it won't work with other ebooks).
 
+#### Lightnovels
+For now, only [LightNovelPub](https://www.lightnovelpub.com) is available.
+
+#### Mangas
+For now, only [IsekaiScan](https://isekaiscan.com) is available.\
+But the creation isn't perfect, the images are still too small and not centered in height.
 
 
 ## Set-up
@@ -18,8 +24,8 @@ Then open a Terminal (⊞ Win + R), and enter the following command:\
 And wait for installation to finish.
 
 ## Run the program
-To run in on Windows, use: `$ C:\Users\*User*\AppData\Local\Programs\Python\Pyhton310\python.exe .\lightNovelPub_Classes.py` \
-To run in on Linux, use: `$ ./lightNovalPub_Classes.py`
+To run in on Windows, use: `C:\Users\*User*\AppData\Local\Programs\Python\Pyhton310\python.exe .\main.py` \
+To run in on Linux, use: `python3 ./lightNovalPub_Classes.py`
 
 
 Juste paste the URL of the book when asked and wait.

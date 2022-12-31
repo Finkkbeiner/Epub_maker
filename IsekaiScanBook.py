@@ -1,14 +1,12 @@
-import string
-
 import requests
 from bs4 import BeautifulSoup
 from ebooklib import epub
 import regex as re
 import utils
 import shutil
-import platform
 import os
 from tqdm import tqdm
+
 from AbstractBook import AbstractBook
 
 
