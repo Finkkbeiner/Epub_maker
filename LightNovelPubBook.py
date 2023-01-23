@@ -1,62 +1,12 @@
-import ebooklib
 import requests
 from bs4 import BeautifulSoup
 from ebooklib import epub
 import regex as re
-import shutil
-import platform
-import os
-import utils
 from tqdm import tqdm
 
 import utils
 from AbstractBook import AbstractBook
 
-
-def input_url0():
-    url0 = input("Enter the book URL: ")
-    return url0
-
-
-def display_header():
-    print("\n")
-    print("\t\t   フィンクバイヌ")
-    print("\t\t⎡⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎴⎤")
-    print("\t\t⎢    Epub Maker    ⎥")
-    print("\t\t⎣__________________⎦")
-    print("\n\tIt only works with lightnovelpub.com.\n")
-
-
-def log(txt):
-    file = open("log_epubMaker.txt", 'a')
-    file.write(txt)
-    file.close()
-
-
-def remove_cover():
-    os.remove("cover.jpg")
-
-
-def remove_log_file():
-    try:
-        os.remove("log_epubMaker.txt")
-    except FileNotFoundError:
-        pass
-
-
-def delete_spaces(txt):
-    # Also prevents the issues with "/" when creating a file (not to make it a folder), also with "\""
-    tmp = ""
-    for k in range(len(txt)):
-        if txt[k] == ' ':
-            tmp += '_'
-        elif txt[k] == '"':
-            tmp += '\''
-        elif txt[k] == "/":
-            tmp += ":"
-        else:
-            tmp += txt[k]
-    return tmp
 
 # Get the content of a chapter, works only with LightNovelPub
 def get_chapter_content(url):
@@ -81,16 +31,6 @@ def get_chapter_content(url):
             continue
 
     return chap_title, chap_content
-
-
-def get_path_of_existing_book():
-    is_file = False
-    while not is_file:
-        path = input("Enter existing book path: ")
-        if os.path.isfile(path) and os.path.splitext(path)[1] == '.epub':
-            break
-        print("Please enter a valid path.")
-    return path
 
 
 class LightNovelPubBook(AbstractBook):

@@ -83,7 +83,7 @@ class AbstractBook(metaclass=abc.ABCMeta):
 		self.book.set_language(lang)
 		self.book.set_identifier(isbn)
 
-	def set_cover(self, path="cover.jpg"):
+	def set_cover(self):
 		try:
 			self.book.set_cover("cover.jpg", open('cover.jpg', 'rb').read())
 		except FileNotFoundError:
@@ -110,10 +110,8 @@ class AbstractBook(metaclass=abc.ABCMeta):
 		self.book.add_item(epub.EpubNav())
 		self.book.add_item(epub.EpubNcx())
 
-
 	def write(self):
 		epub.write_epub(delete_spaces(str(self.title)) + '.epub', self.book, {})
-
 
 	# ############### Methods for updating books ############### #
 
@@ -126,14 +124,14 @@ class AbstractBook(metaclass=abc.ABCMeta):
 		for item in map(int, re.findall(r'\d+', last)):
 			nbr.append(int(item))
 		return max(nbr)  # Not sure that it will work in all cases
-		# (for example if there is a high number in the name of the last chapter)
+
+	# (for example if there is a high number in the name of the last chapter)
 
 	def select_needed_chapters(self, last_chapter):
 		self.get_chapter_link()
 		self.url_list = self.url_list[last_chapter:]
 
-	# ########################################################## #
+# ########################################################## #
 
-
-	# ################################################################################################################ #
-	#
+# ################################################################################################################ #
+#

@@ -63,7 +63,6 @@ if __name__ == "__main__":
 			print("Create Manga sauce")
 			book = IsekaiScanBook(url0)
 			book.book.set_direction("rtl")  # reading right-to-left, but does not work
-			pass
 		# Common part (function)
 		create_book(book)
 
@@ -76,10 +75,9 @@ if __name__ == "__main__":
 		elif source == utils.ISEKAISCAN:
 			print("Update Manga sauce")
 			book = IsekaiScanBook(url0, path)
-			pass
 		# Common part (function)
 		update_book(book)
 
 	else:
 		print("Exiting...")
-		exit()
+		exit(-1)

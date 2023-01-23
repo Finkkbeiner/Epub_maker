@@ -12,7 +12,7 @@ from AbstractBook import AbstractBook
 
 def get_chapter_content(url):
 	""" Return the title of the chapter
-		and the list of imgs URL to download
+		and the list of images URL to download
 	"""
 	chap_title = url[url.find('chapter'):]  # :-1
 	content_list = []
@@ -21,6 +21,7 @@ def get_chapter_content(url):
 	if r.status_code != 200:
 		utils.log(f"Error {r.status_code} when fetching chapter {url}.")
 		exit(1)
+
 	soup = BeautifulSoup(r.content, 'html.parser')
 
 	s = soup.find_all('div', class_="page-break")
@@ -68,7 +69,7 @@ class IsekaiScanBook(AbstractBook):
 			index_end = li.find('/">')
 			self.url_list.append(li[index_href:index_end])
 
-		# Dind't find easiest way to do this
+		# Didn't find any easier way to do this
 		ordered = []
 		for link in self.url_list:
 			ordered.insert(0, link)
