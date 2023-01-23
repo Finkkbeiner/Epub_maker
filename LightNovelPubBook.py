@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from ebooklib import epub
 import regex as re
 from tqdm import tqdm
+import time
 
 import utils
 from AbstractBook import AbstractBook
@@ -11,9 +12,16 @@ from AbstractBook import AbstractBook
 # Get the content of a chapter, works only with LightNovelPub
 def get_chapter_content(url):
     r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
-    if r.status_code != 200:
-        utils.log(f"Error {r.status_code} when fetching chapter {url}.")
-        exit(1)
+    while r.status_code != 200:
+        if r.status_code == 429:
+            time.sleep(1)
+            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+            continue
+        elif r.status_code != 200:
+            utils.log(f"Error {r.status_code} when fetching chapter {url}.")
+            exit(1)
+
+
     soup = BeautifulSoup(r.content, 'html.parser')
     s = soup.find('div', class_='titles')
     chap_title = str(s.find('span', class_='chapter-title').text)
