@@ -8,26 +8,6 @@ import regex as re
 import utils
 
 
-def log(txt):
-	file = open("log_epubMaker.txt", 'a')
-	file.write(txt)
-	file.close()
-
-
-def delete_spaces(txt):
-	# Also prevents the issues with "/" when creating a file (not to make it a folder), also with "\""
-	tmp = ""
-	for k in range(len(txt)):
-		if txt[k] == ' ':
-			tmp += '_'
-		elif txt[k] == '"':
-			tmp += '\''
-		elif txt[k] == "/":
-			tmp += ":"
-		else:
-			tmp += txt[k]
-	return tmp
-
 
 class AbstractBook(metaclass=abc.ABCMeta):
 
@@ -90,7 +70,7 @@ class AbstractBook(metaclass=abc.ABCMeta):
 			try:
 				self.book.set_cover("cover.png", open('cover.png', 'rb').read())
 			except FileNotFoundError:
-				log("The cover file was not found.")
+				utils.log("The cover file was not found.")
 				print("The cover file was not found.")
 
 	def get_css_style(self):
@@ -111,7 +91,7 @@ class AbstractBook(metaclass=abc.ABCMeta):
 		self.book.add_item(epub.EpubNcx())
 
 	def write(self):
-		epub.write_epub(delete_spaces(str(self.title)) + '.epub', self.book, {})
+		epub.write_epub(utils.delete_spaces(str(self.title)) + '.epub', self.book, {})
 
 	# ############### Methods for updating books ############### #
 
