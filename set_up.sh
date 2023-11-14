@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # The different libraries needed to run the program.
-libs=(requests beautifulsoup4 EbookLib regex pytest-shutil tqdm)
+libs=(requests beautifulsoup4 EbookLib regex pytest-shutil tqdm fake-useragent)
 
 function usage(){
     cat <<EOF

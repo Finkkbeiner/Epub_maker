@@ -7,11 +7,13 @@ import time
 
 import utils
 from AbstractBook import AbstractBook
+from fake_useragent import UserAgent
 
 
 # Get the content of a chapter, works only with LightNovelPub
 def get_chapter_content(url):
-    r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+    user_agent = UserAgent().random
+    r = requests.get(url, headers={'User-Agent': user_agent})
     while r.status_code != 200:
         if r.status_code == 429:
             time.sleep(1)
@@ -68,16 +70,15 @@ class LightNovelPubBook(AbstractBook):
         res = str(s.find_all('li')[-1])  # always takes the last, that's not what we want
 
         if len(s.find_all("li", attrs={"class": "PagedList-skipToLast"})):
-            indx, indx_gt = res.index("page-"), res.index("&gt;&gt")  # Works when there is a >>
+            indx, indx_gt = res.index("page="), res.index("&gt;&gt;")  # Works when there is a >>
             nbr_pages = int(res[indx + 5:indx_gt - 2])
         elif len(s.find_all("li", attrs={"class": "PagedList-skipToNext"})):
             res = str(s.find_all('li')[-2])  # We don't take the last thing '>' if it is the last
-            indx, indx_gt = res.index("page-"), res.index("\">")
+            indx, indx_gt = res.index("page="), res.index("\">")
             nbr_pages = int(res[indx + 5:indx_gt])
         else:
             nbr_pages = 1  # There are less than 100 chapters
 
-        # print("Nbr de pages de 100 chap: ", nbr_pages)
 
         for k in range(1, nbr_pages + 1):
             url = self.url0 + f"/chapters/page-{k}"
