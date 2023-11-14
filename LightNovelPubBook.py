@@ -4,20 +4,19 @@ from ebooklib import epub
 import regex as re
 from tqdm import tqdm
 import time
+from fake_useragent import UserAgent
 
 import utils
 from AbstractBook import AbstractBook
-from fake_useragent import UserAgent
 
 
-# Get the content of a chapter, works only with LightNovelPub
+
 def get_chapter_content(url):
-    user_agent = UserAgent().random
-    r = requests.get(url, headers={'User-Agent': user_agent})
+    r = requests.get(url, headers={'User-Agent': UserAgent().random})
     while r.status_code != 200:
         if r.status_code == 429:
             time.sleep(1)
-            r = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+            r = requests.get(url, headers={'User-Agent': UserAgent().random})
             continue
         elif r.status_code != 200:
             utils.log(f"Error {r.status_code} when fetching chapter {url}.")
@@ -63,15 +62,15 @@ class LightNovelPubBook(AbstractBook):
 
     def get_chapter_link(self):
         print("Retrieving chapters URLs ...")
-        r = requests.get(self.url0 + "/chapters", headers={'User-Agent': 'Mozilla/5.0'})
+        r = requests.get(self.url0 + "/chapters", headers={'User-Agent': UserAgent().random})
         soup = BeautifulSoup(r.content, 'html.parser')
         s = soup.find('div', class_="pagination-container")
 
         res = str(s.find_all('li')[-1])  # always takes the last, that's not what we want
 
         if len(s.find_all("li", attrs={"class": "PagedList-skipToLast"})):
-            indx, indx_gt = res.index("page="), res.index("&gt;&gt;")  # Works when there is a >>
-            nbr_pages = int(res[indx + 5:indx_gt - 2])
+            indx, indx_gt = res.index("page="), res.index("\">&gt;&gt;")  # Works when there is a >>
+            nbr_pages = int(res[indx + 5:indx_gt])
         elif len(s.find_all("li", attrs={"class": "PagedList-skipToNext"})):
             res = str(s.find_all('li')[-2])  # We don't take the last thing '>' if it is the last
             indx, indx_gt = res.index("page="), res.index("\">")
@@ -82,7 +81,7 @@ class LightNovelPubBook(AbstractBook):
 
         for k in range(1, nbr_pages + 1):
             url = self.url0 + f"/chapters/page-{k}"
-            soup = BeautifulSoup(requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}).content, 'html.parser')
+            soup = BeautifulSoup(requests.get(url, headers={'User-Agent': UserAgent().random}).content, 'html.parser')
             s = soup.find('ul', class_="chapter-list")
             lis = s.find_all('li')
             for li in lis:
@@ -106,5 +105,4 @@ class LightNovelPubBook(AbstractBook):
             self.add_chapter(chap)
 
             self.book.spine.append(chap)
-            # print(chap, "\n")
-            self.book.toc.append(chap)  # self.book.toc = self.book.toc + (chap,)
+            self.book.toc.append(chap)
