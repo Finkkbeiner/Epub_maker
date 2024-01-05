@@ -32,14 +32,14 @@ def choose_source():
 	book_types = ["Light Novel", "Manga", "Manhua", "Manhwa"]
 	print("Sources:")
 	print("\t[1] {} ({})".format("LightNovelPub", book_types[0]))
-	print("\t[2] {} ({})".format("IsekaiScan", book_types[1]))
+	#print("\t[2] {} ({})".format("IsekaiScan", book_types[1]))
 	#
 	source = input("Your choice: ")
 	try:
 		if int(source) == 1:
 			return LIGHTNOVELPUB
-		elif int(source) == 2:
-			return ISEKAISCAN
+		#elif int(source) == 2:
+		#	return ISEKAISCAN
 		else:
 			return ERROR
 	except ValueError:

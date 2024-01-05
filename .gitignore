@@ -4,3 +4,6 @@
 *.yml
 __pycache__/
 idea/
+.idea/
+.idea/codeStyles/
+.idea/inspectionProfiles/
